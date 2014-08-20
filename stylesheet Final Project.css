@@ -1,0 +1,67 @@
+#button{
+	color: red;
+}
+
+.footer{
+	bottom:0; 
+	position:fixed !important; 
+	top: auto !important; 
+	width:100%; 
+}
+
+.picture{
+	position: auto;
+	top:50 em;
+	right: 1000 em;
+	left: 30 em;
+	bottom: auto;
+	height: 100 em;
+	width: 100 em;
+}
+
+#homeFooter{
+	bottom:0; 
+	position:fixed !important; 
+	top: auto !important; 
+	width:100%; 
+	text-align: right;
+}
+
+.LeFridge{
+	font-family: impact;
+	font-size: 600%
+}
+
+#infoPageStuff{
+	min-width:90%;
+	max-width:50%;
+	margin-left: auto;
+	margin-right: auto;
+	
+}
+
+body {
+   background: -webkit-linear-gradient(top, rgb(136,199,201) 58%, rgb(202,232,235) 100%);
+   background: -moz-linear-gradient(top, rgb(136,199,201) 58%, rgb(202,232,235) 100%);
+   background: -ms-linear-gradient(top, rgb(136,199,201) 58%, rgb(202,232,235) 100%);
+   background: -o-linear-gradient(top, rgb(136,199,201) 58%, rgb(202,232,235) 100%);
+   background: linear-gradient(top, rgb(136,199,201) 58%, rgb(202,232,235) 100%);
+   padding: 3%;
+   height: 94%;
+}
+
+body  {
+    background-image: url('HonHonHon.png');
+    background-color: #cccccc;
+}
+
+#round {
+    -webkit-border-image: url(border.png) 30 30 round; /* Safari 3.1-5 */
+    -o-border-image: url(border.png) 30 30 round; /* Opera 11-12.1 */
+    border-image: url(border.png) 30 30 round;
+}
+
+#picture img{
+	width: 50%;
+	height: auto;
+}

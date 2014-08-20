@@ -1,0 +1,689 @@
+<!DOCTYPE html> 
+<html>
+<head>
+	<title>Foodie</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src='https://cdn.firebase.com/js/client/1.0.15/firebase.js'></script>
+    <link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.3/jquery.mobile-1.4.3.min.css" />
+    <link rel = "stylesheet" type = "text/css" href = "stylesheet Final Project.css">
+	<!--<script language = "javascript" src="Recipe.js"></script>-->
+	<script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="https://code.jquery.com/mobile/1.4.3/jquery.mobile-1.4.3.min.js"></script>
+	
+	<script>
+		var database= new Firebase("https://gwcfinalprojectjk.firebaseio.com/leFridge");
+		var shoppingDatabase = new Firebase("https://gwcfinalprojectjk.firebaseio.com/shoppingList");
+		
+		database.on('value', showItems);
+		shoppingDatabase.on('value', showShopping);
+		
+		function printKey(e){
+			if (e.keyCode == 13){
+				addFood();
+			}
+		}
+		
+		function otherprintKey(e){
+			if (e.keyCode == 13){
+				addToShop();
+			}
+		}		
+		
+		
+		function addFood(){
+		
+			
+			var Textyval = $("#userInput").val();
+			var numVal = $("#numberInput").val();
+			
+			if (Textyval != ""){
+				database.once('value', compare);
+				function compare(snapshot){
+					data = snapshot.val();
+					
+					for (var identifier in data){
+					
+						foodvalue = (data[identifier].food);
+						numvalue = (data[identifier].number);
+						
+						if (Textyval == foodvalue){
+							sum = +numVal + +numvalue;
+							database.child(identifier).update({number: sum});
+							return;
+						}
+					}
+					database.push({food: Textyval, number: numVal});
+				}
+			
+			
+			$("#foodList").empty();
+
+			database.on('value', showItems);
+			$("#userInput").val("");
+			$("#numberInput").val("1");
+			}
+			
+			else{
+			alert("Oops!~ You didn't type anything");
+			}
+		
+		}
+		
+		var fridgeList = [];
+		var fridgeListQuantity = [];
+		
+		function showItems(snapshot){
+		
+			var data = snapshot.val();
+
+			$("#foodList").empty();
+			fridgeList.length = 0;
+			fridgeListQuantity.length = 0;
+			for(var identifier in data){
+				
+				foodValue = (data[identifier].food);
+				numberValue = (data[identifier].number);
+				
+				$("#foodList").append('<li><span class= "ui-grid-c ui-responsive"> <span class= "ui-block-a" style="width:80%"><a href="#" class="ui-btn ui-corner-all ui-shadow">'+numberValue+" "+foodValue+'</a></span><span class="ui-block-b" style="width:10%"><input type="number" id= '+identifier+' value="1" style="width:100%" class="ui-input-text ui-body-a ui-corner-all ui-shadow-inset"/></span><span class="ui-block-c" style="width:5%; text: false;"><a href="#" class="ui-btn ui-corner-all ui-shadow ui-icon-gear ui-btn-icon-top" onclick=\'editInput("'+identifier+'")\'> </a></span><span class="ui-block-d" style="width:5%"><a href="#" class="ui-btn ui-corner-all ui-shadow ui-icon-delete ui-btn-icon-top" onclick =\'delInput("'+identifier+'")\'></a></span></li>').listview().listview("refresh");
+				
+					
+				fridgeList.push(data[identifier].food);
+				fridgeListQuantity.push(data[identifier].number);
+				
+			}
+		}	
+		
+		function delInput(identifier){			
+			database.child(identifier).remove();
+		}
+		
+		function editInput(identifier){
+			newnumber= $("#"+identifier+"").val();
+			database.child(""+identifier+"").update({number: ""+newnumber+""});
+			$('#'+identifier+'').val("1");
+		}
+		
+		function clearFridge(){
+			database.remove();
+		}
+		
+		// SHOPPING LIST STUFF..................................................
+		
+		function addToShop(){
+			var Textval = $("#shopInput").val();
+			var Numval = $("#shopNumber").val();
+		
+			if (Textval != ""){
+				
+				shoppingDatabase.once('value', compare);
+				function compare(snapshot){
+					data = snapshot.val();
+					
+					for (var identifier in data){
+					
+						foodvalue = (data[identifier].food);
+						numvalue = (data[identifier].number);
+						
+						if (Textval == foodvalue){
+							sum = +Numval + +numvalue;
+							shoppingDatabase.child(identifier).update({number: sum});
+							return;
+						}
+					}
+					shoppingDatabase.push({food: Textval, number: Numval});
+				}
+				
+				$("#shopping").empty();
+				
+				shoppingDatabase.on('value', showShopping);
+				$("#shopInput").val("");
+				$("#shopNumber").val("1");
+			}
+			
+			else{
+				alert("Oops!~ You didn't type anything");
+			}
+		}
+		
+		function showShopping(snapshot){
+			var data = snapshot.val();
+			$("#shopping").empty();
+			
+			for (var identifier in data){
+			
+				foodValue = (data[identifier].food);
+				numberValue = (data[identifier].number);
+
+				
+				$("#shopping").append('<li><div id = "showShopping" data-inline = "true"><span class= "ui-grid-b ui-responsive" data-inline = "true"> <span class= "ui-block-a ui-checkbox" style="width:90%" data-inline = "true"><label class="ui-btn ui-corner-all ui-btn-inherit ui-btn-icon-left ui-checkbox-off" data-inline = "true"><input type="checkbox"/>'+numberValue+" "+foodValue+'</span></span><span class="ui-block-b" style="width:5%; text: false;"data-inline = "true"><a href="#" data-inline = "true" class="ui-btn ui-corner-all ui-shadow ui-icon-delete ui-btn-icon-top" onclick=\'deleteshop("'+identifier+'")\'> </a></span><span class="ui-block-c" style="width:5%; text:false"data-inline = "true"><a href="#" data-inline = "true" class="ui-btn ui-corner-all ui-shadow ui-icon-plus ui-btn-icon-top" onclick =\'delShopInput("'+identifier+'", "'+foodValue+'", "'+numberValue+'")\'></a></span></label></div></li>').listview().listview("refresh");
+				
+			}
+		}
+		
+		function editShopInput(identifier){
+			newnumber= $("#"+identifier+"").val();
+			shoppingDatabase.child(""+identifier+"").update({number: ""+newnumber+""});
+			$('#'+identifier+'').val("1");
+		}
+		
+		function delShopInput(identifier, food, number){
+			foodval = food;
+			numberval = number;
+			shoppingDatabase.child(identifier).remove();
+			database.push({food: foodval, number: numberval});
+		}
+		
+		function deleteshop(identifier){
+			shoppingDatabase.child(identifier).remove();
+		}
+		
+		function clearShopping(){
+			shoppingDatabase.remove();
+		}
+		
+		//SHOW FUNCTION
+		
+		var ingList = 0;
+		var makeItName;
+		var makeItNameNum;
+		var makeItRecipeName;
+		
+		function Recipe(name, ingredients, ingredientQ, ingredientU, opIngredients, steps, objectName, picture){
+			this.name = name;
+			this.ingredients = ingredients;
+			this.ingredientQ = ingredientQ;
+			this.ingredientU = ingredientU;
+			this.opIngredients = opIngredients;
+			this.steps = steps;
+			this.objectName = objectName;
+			this.picture = picture;
+			
+			this.print = function(){
+				
+				$("#name").empty();
+				$("#ingredientTitle").empty();
+				$("#list").empty();
+				$("#stepTitle").empty();
+				$("#steps").empty();
+				$("#optionalList").empty();
+				$("#optionalListTitle").empty();
+				$("#name").append(this.name);
+				$("#ingredientTitle").append("Ingredients:");
+				$("#optionalListTitle").append("Optional Ingredients:");
+				$("#picture").empty();
+				$("#picture").append("<img src ='" + this.picture +"'/>");
+				
+				for (i=0; i<this.ingredients.length; i++){
+					$("#list").append("<li>" + this.ingredientQ[i] + " " + this.ingredientU[i] + "  " + this.ingredients[i] + "</li>");
+				}
+				
+				$("#stepTitle").append("Steps:");
+				
+				for (i = 0; i < this.steps.length; i++){
+					$("#steps").append("<li>" + this.steps[i] + "</li>");
+				}
+				
+				for (i=0; i < this.opIngredients.length; i++){
+					$("#optionalList").append("<li>" + this.opIngredients[i] + "</li>");
+				}
+				
+				makeItName = this.ingredients;
+				makeItNameNum = this.ingredientQ;
+				makeItRecipeName = objectName;
+			}
+		}
+		
+		//DELETING FRIDGE ITEM
+		var deletedList = [];
+		
+		function update(){
+			
+			database.once('value', letsDelete)
+			
+			
+			function letsDelete(snapshot){
+				var data = snapshot.val();
+				
+				for (var identifier in data){
+					foodValue = (data[identifier].food);
+					
+					for (var i =0; i <makeItName.length; i++){
+						if (makeItName[i] == foodValue){
+								deletedList.push(" " + makeItName[i]);
+								var number = data[identifier].number
+								number = +number - +makeItNameNum[i];
+								console.log(makeItName[i] + ":" + number);
+								database.child(identifier).update({number: number});
+								
+								if (number <= 0){
+									database.child(identifier).remove();
+								}
+						}
+					}					
+				}
+			}
+			alert ("WOO!" + deletedList + " have been deleted from your fridge.");
+			
+		}
+		
+
+		
+		var recipeList = [];
+
+		var points = 0;
+		
+		var recipeHardBoiledEgg = new Recipe ("Hard Boiled Eggs", ["Eggs"], ["1"], [""], ["Salt"], 
+		["Put enough water in the pot to cover the eggs by 1 inch", "Put egg in water... gently", 
+		"Cook time: Extra-large eggs (15 minutes), large eggs (12 minutes), Medium eggs (9 minutes)", 
+		"Enjoy the eggs making sure to adequately dip it in the optional salt"], "recipeHardBoiledEgg", "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcQTNkL-TNoDcQFyw9waCUilCyrJWrpitqbdnLLFp7_y4q7s1TZN");
+		
+		var recipeOmelet = new Recipe ("Omelet", ["Eggs"],["1"], [""], ["Vegetable oil, Assortment of vegetable", "Mushroom", "Salt",
+		"Pepper", "Cheese", "Meat (Ex: Ham, Sausage)"], ["Crack the egg in a large bowl", "Whisk the egg until the yolk and whites are fully homegenated",
+		"Dice the optional vegetables to appropriate size and add it to the batter", "Slice the optional meat", "Heat the frying pan and spread a thin layer of vegetable oil",
+		"When the pan is hot, pour the mixture onto the pan", "When the side against the pan is no longer runny, flip the omelet",
+		"Further heat the omelet to the desired color and consistency"], "recipeOmelet", "http://valeryscafe.com/sites/default/files/imagecache/product_full/create-your-own-omelet_0.jpg");
+		
+		var recipeTurkeySandwhich = new Recipe ("Sandwhich", ["Bread", "Turkey"],["2", "3"], ["slices of", "slices of"], ["Assortment of vegetable", "Sauce", "Cheese", "Chips"], ["Toast the toast in a toaster", "On the bottom, smear the sauce",
+		"Stack the vegetable and the meat to your heart's content", "Put the top toast on", "Skewer the toast with a toothpick (+ olive to be fanceee) for an easier experience"], "recipeTurkeySandwhich", "http://www.joyofkosher.com/wp-content/uploads/2011/08/sandwich.jpg");
+		
+		var recipeDeadBodyBBQ = new Recipe ("Dead Body BBQ", ["Human Body"],["10"], ["mg"], ["A Big Oven"], ["Run for it"], "recipeDeadBodyBBQ", "http://www.ninjastars.org/wp-content/uploads/2011/07/Ninja1.jpg");
+		
+		var recipeLemonade = new Recipe ("Lemonade", ["Lemon Juice", "Sugar"], ["1", "0.5"], ["cups of","cups of"], ["Ice"], ["Slice the lemons in half, and squeeze as much juice into a food processor (1 cup of lemon juice) ", "Add the ice (i cup)", "Add 4 cups of water", "Add the appropriate amount of sugar (~1/2 to 3/4 cup)"
+		, "Blend until everything is smooth", "Serve on a hot day with ice"], "recipeLemonade", "http://kitchentalks.com/wp-content/uploads/2011/05/Iced-cold-lemonade-the-ultimate-thirst-quencher.jpg");
+		
+		var recipeGuacamole = new Recipe ("Guacamole", ["Avocados"], ["2"], [""], ["1/2 teaspoon of salt", "1 Tbsp of lime/lemon juice", "2 Tbsp to 1/4 cup of sliced green/red onion", "1-2 chiles", "Cilantro", "Black Pepper", "1/2 Tomato"], ["Cut the avoado in half, remove the seed, and scoop out the insides onto a large bowl.", "Mash the avocado with a fork, adding the salt and citrus juice.", "Add the rest of the chopped vegetables", "Enjoy!!"]
+		, "recipeGuacamole", "http://www.simplyrecipes.com/wp-content/uploads/2009/05/guacamole-520-b.jpg");
+		
+		var recipeChickenPestoPanini = new Recipe ("Chicken Pesto Panini", ["Bread", "Pesto", "Chicken", "Cheese"], ["4", "1/2", "1", "1"], 
+		["slices of", "cup of", "cup of", "cup of", "cup of"], ["1/2 cup of green bell pepper", "1/4 cup of diced red onion", "Assortment of vegetables"], ["Preheat a panini grill. If it is not available, use a pan or a lid to press the bread against the stove/frying pan.", "Stack the ingredients neatly between the pieces of bread.", "Grill the panini until cheese melts and bread is golden brown."], "recipeChickenPestoPanini", "http://alittleclaireification.com/wp-content/uploads/2035/07/pestochickensandwiches7-1024x682.jpg");
+		
+		var recipeFilletMignon = new Recipe ("Fillet Mignon", ["Steak", "Wine"], ["2", "0.25"], ["(4 ounce)", "cup of"], ["1/2 teaspoon of black pepper", "salt", "1/4 cup balsamic vinegar", "Prefered sauce"], ["Sprinkle grond pepper and salt on both sides of the steak.", "Heat a skillet over medium heat.", "Cook each side of the steak for 1 minute each, or until browned.", "Reduce heat to medium low, add the vinegar and red wine.", "Cover and cook for 4 minutes on each side, basting with sauce when you turn the meat over.",
+		"Serve with the teaspoon of glaze over steak."], "recipeFilletMignon", "http://images.media-allrecipes.com/userphotos/250x250/00/46/85/468582.jpg");
+		
+		var recipeButterChicken = new Recipe ("Butter Chicken", ["Eggs", "Chicken", "Butter", "Bread Crumbs"], ["2", "4", "0.5", "1"], ["", "skinless, boneless chicken breast halves of", "cup of", "cup of"], ["1/2 teaspoon garlic salt", "Black pepper", "Cracker crumbs instead of bread crumbs"], ["Preheat oven to 375 degrees F (190 degrees C).", "Whisk the eggs to homogenate yellows and whites, adding in garlic salt and pepper.", "Dip the chicken in the eggs, then the crumbs.",
+		"Arrange the chicken pieces in a baking dish and place pieces of butter around the chicken", "Bake in oven for 40 minutes or until chicken is no longer pink and juices run clear."], "recipeButterChicken", "http://3.bp.blogspot.com/-YbBdSm8T6Sg/UXmYqbzlToI/AAAAAAAAGc8/9PZPkvY8x_Q/s1600/296379%5B1%5D.jpg");
+		
+		var recipeFrenchFries = new Recipe ("French Fries", ["Potatoes", "Oil"], ["4", "2"], ["", "quarts of"], ["1 tablespoon of salt"], ["Peel the potatoes on the sides.Cut the potatoes into 1/3-inch slices and then slice into 1/3-inch sticks.", "Soak them in a bowl of water for at least 1/2 hour.", "Heat a pot of oil to 325 degrees.", "Take the potatoes out of the bowl and pat to dry.", "Add two handfulls to the oil with at least an inch of oil above the potatoes.", "Cook until golden brown.(At least 10 minutes)", "Drain the excess oil on a towel.", "Lightly season with salt."], "recipeFrenchFries", "http://img2.findthebest.com/sites/default/files/530/media/images/Burger_King_French_Fries_-_medium_Salted_755117_i0.jpg");
+		
+		var recipeCornOnTheCob = new Recipe ("Corn on the Cob", ["Corn"], ["1"], ["Ears"], ["1/2 tablespoon of salt", "Butter"], ["Husk the corn, pull off the silky threads, and cut out any blemishes with a knife.", "Put the corn in a pot of boiling water.", "Leave for 5 minutes.", "Serve with butter or salt."], "recipeCornOnTheCob", "http://eclecticrecipes.com/wp-content/uploads/2012/05/corn-2.jpg");
+		
+		var recipeCheeseburger = new Recipe ("Cheeseburger", ["Buns", "Tomatoes", "Cheese", "Ground Beef"], ["4", "8", "4", 1], ["", "Slices of", "Slices of", "Pound of"], ["Ketchup", "Onions", "Pickles"], ["Heat a grill to medium high and lightly oil the surface.", "Divide the beef into 4 patties about 4 inches in diameter and just under 1/2-inch thick.", "Grill the burgers until the edges brown for 3-5 minutes and then flip.", "Grill for about 3 minutes more.", "Put one burger on top of a bun, place two slices of tomatoe and one slice of cheese, and top with the bun."], "recipeCheeseburger", "http://burgerdays.com/wp-content/uploads/2012/09/vertigoburgerforcheeseburgerday.jpg");
+		
+		var recipeChickenTeriyaki = new Recipe ("Chicken Teriyaki", ["Chicken", "Soy sauce", "Mayonnaise"], ["6", "1", "1"], ["Boneless Breasts (pounded thin)", "Cup of", "Cup of"], [""], ["In a medium bowl, mix together the soy sauce and mayonnaise. Add the chicken, and turn to coat. Cover, and marinate for 30 minutes.", "Preheat a grill for medium heat. When the grill is hot, lightly brush the grate with oil.", "Place the chicken onto the grill with a thick coating of the marinade. Discard remaining marinade. Cook for about 10 minutes per side, or until chicken is firm and juices run clear."], "recipeChickenTeriyaki", "http://arbuz.com/wp-content/uploads/2010/01/20100130-Cooking-742-Edit.jpg");
+		
+		var recipeTurkeyLegs = new Recipe ("Turkey Legs", ["Turkey legs", "Poultry seasoning"], ["6", "3"], ["", "Tablespoons of"], ["Salt", "Pepper"], ["Wash the turkey legs, and shake off excess moisture.", "Sprinkle each turkey leg with about 1/2 teaspoon of poultry seasoning, salt, and black pepper to taste.", "Wrap the leg tightly in aluminum foil. Repeat with remaining legs.", "Place the wrapped turkey legs into a slow cooker with no liquids or other ingredients. Set the cooker to Low, and cook until the meat is very tender, 7 to 8 hours."], "recipeTurkeyLegs", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRaiQtrOnHUzaVEBnDiUERbtfTb-gBR8c5w5zp55mGt_UR8jpb7eg");
+		
+		var recipeCheeseQuesadillas = new Recipe ("Cheese Quesadillas", ["Tortillas", "Cheese"], ["2", "1"], ["Flour", "Cup of shredded"], [""], ["Place 1 flour tortilla on a large microwave-safe plate; sprinkle with Cheddar cheese. Place the second flour tortilla atop the Cheddar layer.", "Cook on high in the microwave until cheese is melted, about 1 minute."], "recipeCheeseQuesadillas", "http://usamania.wikispaces.com/file/view/quesadilla.jpg/209798858/quesadilla.jpg");
+		
+		var recipeFriedRice = new Recipe ("Fried Rice", ["Rice", "Peas", "Carrots", "Eggs", "Soy sauce"], ["3", ".5", ".5", "2", "3"], ["Cups of Cooked", "Cups of", "Cups of", "Lightly Beaten", "Tablespoons of"], ["Green Onions"], ["Preheat a large skillet or wok to medium heat. Pour sesame oil in the bottom. Add white onion and peas and carrots and fry until tender.", "Slide the peas and carrots to the side, and pour the beaten eggs onto the other side. Using a spatula, scramble the eggs. Once cooked, mix the eggs with the vegetable mix.", "Add the rice to the veggie and egg mixture. Pour the soy sauce on top. Stir and fry the rice and veggie mixture until heated through and combined. Add chopped green onions if desired."], "recipeFriedRice", "http://blogs.rep-am.com/whatsfordinner/files/2013/03/FriedRice.jpg");
+		
+		var recipeApplesauce = new Recipe ("Applesauce", ["Apples", "Water", "Sugar", "Cinnamon"], ["1", ".75", ".25", ".5"], ["Peeled, cored, and chopped", "Cup of", "Cup of white", "Teaspoon of ground"], [""], ["Combine the ingredients in a saucepan.", "Cover and cook over medium heat for 15 to 20 minutes or until apples are soft.", "Allow to cool and then mash with a fork or potatoe masher."], "recipeApplesauce", "http://sweetpeaskitchen.com/wp-content/uploads/2011/10/baked-applesauce.jpg");
+		
+		var recipeRoastPotatoes = new Recipe ("Roast Potatoes", ["Potatoes"], ["2"], ["pounds of cut"], ["2 tablespoons of vegetable oil", "1 teaspoon of salt", "1/2 teaspoon black pepper"], ["Preheat the oven to 450 degrees F", "Place the potatoes in a large roasting pan and toss with oil, salt, and pepper until evenly coated. Spread out in a single layer", "Bake in oven for 20 minutes, stirring occasionally"], "recipeRoastPotatoes", "http://img4-2.myrecipes.timeinc.net/i/recipes/ck/08/04/roasted-potatoes-ck-1723410-l.jpg");
+		
+		var recipeMacaroniAndCheese = new Recipe ("Macaroni and Cheese", ["Macaroni", "Cheese", "Milk"], ["1", "1", "1"], ["Package of", "Pound of", "Cup of"], ["Salt"], ["Preheat oven to 350 degrees F (175 degrees C). Bring a large pot of lightly salted water to a boil. Add pasta and cook for 8 to 10 minutes or until al dente; drain.", "Place macaroni in a 2 quart casserole dish. Stir in cheese soup and milk until well combined.", "Bake 25 to 30 minutes, or until cheese is brown and bubbly."], "recipeMacaroniAndCheese", "http://img1.cookinglight.timeinc.net/sites/default/files/styles/400xvariable/public/image/2007/05/0705p270-stovetop-mac-cheese-m.jpg?itok=4EzMwqNP");
+		
+		var recipeFriedOnionRings = new Recipe ("Fried Onion Rings", ["Onions", "Oil", "Flour"], ["4", "1", "1"], ["Peeled and sliced", "Quart vegetable", "Cup all-purpose"], ["1 pinch of salt", "1 pinch of black pepper"], ["In a large, deep skillet, heat oil to 365 degrees F (180 degrees C).", "In a medium bowl, combine flour, beer, salt, and pepper. Mix until smooth.", "Dredge onion slices in the batter, until evenly coated.", "Deep fry in the hot oil until golden brown. Drain on paper towels."], "recipeFriedOnionRings", "http://hostedmedia.reimanpub.com/TOH/Images/Photos/37/300x300/exps20362_TH10384D61A.jpg");
+		
+		
+		
+		
+		
+		function addRecipe(){
+			$("#recipeList").empty();
+			
+			recipeList.length = 0;
+			recipeList.push(recipeHardBoiledEgg);
+			recipeList.push(recipeOmelet);
+			recipeList.push(recipeTurkeySandwhich);
+			recipeList.push(recipeDeadBodyBBQ);
+			recipeList.push(recipeLemonade);
+			recipeList.push(recipeGuacamole);
+			recipeList.push(recipeChickenPestoPanini);
+			recipeList.push(recipeFilletMignon);
+			recipeList.push(recipeButterChicken);
+			recipeList.push(recipeFrenchFries);
+			recipeList.push(recipeCornOnTheCob);
+			recipeList.push(recipeCheeseburger);
+			recipeList.push(recipeChickenTeriyaki);
+			recipeList.push(recipeTurkeyLegs);
+			recipeList.push(recipeCheeseQuesadillas);
+			recipeList.push(recipeFriedRice);
+			recipeList.push(recipeApplesauce);
+			recipeList.push(recipeRoastPotatoes);
+			recipeList.push(recipeMacaroniAndCheese);
+			recipeList.push(recipeFriedOnionRings);
+			
+			
+		}
+		
+		function showRecipe(){
+			addRecipe();
+			makeItButton();
+			for (i = 0; i< recipeList.length; i++){
+				
+				points = 0;
+				
+				for (n = 0; n < fridgeList.length; n++){
+					
+					for (z=0; z< recipeList[i].ingredients.length; z ++){
+						if (recipeList[i].ingredients[z] ==  fridgeList [n]){
+							points = points + 1;
+							
+							
+						
+							if ((points/(recipeList[i].ingredients.length)) > .7){
+								
+								$("#recipeList").append("<li><a href = '#recipePage' onclick =" + recipeList[i].objectName + ".print()>" + recipeList[i].name + "</a></li>").listview().listview("refresh");
+								
+								
+							}
+								
+						}
+					}
+				}	
+			
+			}
+		}
+		
+		
+		/* Cookbook */
+		
+		function cookbook(){
+			addRecipe();
+			clear();
+			//alert (recipeList.length);
+			$("#allRecipe").empty();
+			
+			
+			for (i = 0; i < recipeList.length; i++){
+				if (recipeList[i].objectName != "recipeDeadBodyBBQ"){
+					$("#allRecipe").append("<li><a href = '#recipePage' onclick ='" + recipeList[i].objectName + ".print()'>" + recipeList[i].name + "</a></li>").listview().listview("refresh");
+				
+				}
+				else{
+				
+				}
+			}
+		}
+		
+		
+		function makeItButton(){
+			$("#makeButton").empty();
+			$("#makeButton").append("<a href ='#fridgePage' data-role='button' onclick = 'update()' data-theme = 'b'> Make It!!</a><br><br>");
+		}
+	
+		function clear(){
+			$("#makeButton").empty();
+		}
+	</script>
+	
+</head>
+
+<body>
+	<!--WELCOME PAGE-->
+	<div data-role = "page">
+		<div id = "homePage" align = "middle">
+			<a href = "#fridgePage"><img src = "Le Fridge 2.png" width = "70%" height = auto;/></a>
+		</div>
+		
+		<div data-role = "footer" id = "homeFooter" style = "background-color: #FFFFFF; border-top: #FFFFFF">
+			<p style = "padding-right: 3%; font-size: 70%"> Copyright Just Kidding - Eva Jiang and Erin Kim</p>
+		</div>
+	</div>
+	
+	<!-- FRIDGE PAGE -->
+	<div data-role="page" id = "fridgePage" onkeydown="printKey(event)">
+
+		<div data-role="header" class = "header" style = "background-color: black; color: white">
+            <a href = "#" onclick = "clearFridge()" data-icon = "delete" data-theme = "b">Clear</a>
+			<h1> Le Fridge </h1>
+			<a href="#recipeListPage" data-icon="search" class="ui-btn-right" onclick = "showRecipe()" data-theme = "b">Recipes</a>
+		</div>
+		
+		<div class="ui-grid-a" style = "min-width:90%; max-width:50%; margin-left: auto; margin-right: auto;" >
+			<br>
+			<div class="ui-block-a" style="width:80%"><input type= "text" id ="userInput" value = "" placeholder="Write a food" /></div>
+			<div class="ui-block-b" style="width:20%"><input type="number" id="numberInput" value="1" class="ui-input-text ui-body-c ui-corner-all ui-shadow-inset"></div>
+		</div>
+		<div style = "min-width:90%; max-width:50%; margin-left: auto; margin-right: auto;"><input type="submit" value="Add Food" onclick ="addFood() " data-theme = "b"/></div>
+		
+		
+		<!-- Le List -->
+		<div role="main" class="ui-content" style = "min-width:90%; max-width:50%; margin-left: auto; margin-right: auto;">
+			<ul id="foodList" data-role="listview" data-inset="true">
+			</ul>
+			<br>
+			<br>
+		</div>
+		
+		<div data-role = "navbar" class = "footer">
+			<ul>
+				<li><a href = "#fridgePage" data-icon = "home" data-theme = "b" class="ui-btn-active ui-state-persist"> Le Fridge </a></li>
+				<li><a href = "#allRecipePage" data-icon = "grid" data-theme = "b" onclick = "cookbook()"> Le Cookbook </a></li>
+				<li><a href = "#shoppingPage" data-icon = "star" data-theme = "b"> Le List </a></li>
+				<li><a href = "#helpPage" data-icon = "info" data-theme = "b"> Help </a></li>
+				
+			</ul>
+		</div>
+
+	
+	</div>
+</body>
+
+<body>
+	<!-- LIST OF RECIPE -->
+	<div data-role="page" id = "recipeListPage" class = "header">
+
+		<div data-role="header" style = "background-color: black; color: white">
+			<a href="#fridgePage" data-role="button" data-icon = "back" data-theme = "b">Le Fridge</a>
+			<h1>Recipe</h1>
+			<a href = "#allRecipePage" data-role = "button" data-icon = "grid" data-theme = "b">All Recipes</a>
+		</div>
+
+		<div role="main" class="ui-content">
+			<ul id = "recipeList" data-role = "listview">
+				
+			</ul>
+            <br>
+			<br>
+		</div>
+
+		<div data-role = "navbar" class = "footer">
+			<ul>
+				<li><a href = "#fridgePage" data-icon = "home" data-theme = "b" class="ui-btn-active ui-state-persist"> Le Fridge </a></li>
+				<li><a href = "#allRecipePage" data-icon = "grid" data-theme = "b" onclick = "cookbook()"> Le Cookbook </a></li>
+				<li><a href = "#shoppingPage" data-icon = "star" data-theme = "b"> Le List </a></li>
+				<li><a href = "#helpPage" data-icon = "info" data-theme = "b"> Help </a></li>
+			</ul>
+		</div>
+
+	</div>
+</body>
+
+<body>
+	<!-- Recipe Page -->
+	<div data-role="page" id = "recipePage">
+
+		<div data-role="header" class = "header" style = "background-color: black; color: white">
+			<a href="#recipeListPage" data-icon="back" onclick = "showRecipe()" data-theme = "b">Recipes</a>
+			<h1> Le Recipe </h1>
+			
+			<a href="#fridgePage" data-role="button" data-icon = "home" data-theme = "b">Le Fridge</a>
+		</div>
+
+		<div role="main" class="ui-content" style = "min-width:90%; max-width:50%; margin-left: auto; margin-right: auto;">
+			<div id = "picture" align = "middle">
+			
+			</div>
+			<b><h3 id = "name"></h3></b>
+			<i><p id = "ingredientTitle"></p></i>
+			<ol id = "list">
+			</ol>
+			<i><p id = "optionalListTitle"></p></i>
+			<ol id = "optionalList">
+			</ol>
+			<i><p id = "stepTitle"></p></i>
+			<ol id = "steps">
+			</ol>
+			<div id = "makeButton">
+			</div>
+			<br>
+			<br>
+		
+		</div>
+
+
+			
+
+	
+
+		<div data-role = "navbar" class = "footer">
+			<ul>
+				<li><a href = "#fridgePage" data-icon = "home" data-theme = "b" class="ui-btn-active ui-state-persist"> Le Fridge </a></li>
+				<li><a href = "#allRecipePage" data-icon = "grid" data-theme = "b" onclick = "cookbook()"> Le Cookbook </a></li>
+				<li><a href = "#shoppingPage" data-icon = "star" data-theme = "b"> Le List </a></li>
+				<li><a href = "#helpPage" data-icon = "info" data-theme = "b"> Help </a></li>
+			</ul>
+		</div>
+		
+	</div>
+	
+	
+	
+	<div data-role = "page" id = "allRecipePage">
+		<div data-role = "header" class = "header" style = "background-color: black; color: white">
+			<h1> Le Cookbook </h1>
+		</div>
+		
+		<div role = "main" class = "ui-content">
+			<ul id = "allRecipe">
+			
+			
+			</ul>
+			
+			
+		</div>
+		
+		
+		<div data-role = "navbar" class = "footer">
+			<ul>
+				<li><a href = "#fridgePage" data-icon = "home" data-theme = "b" > Le Fridge </a></li>
+				<li><a href = "#allRecipePage" data-icon = "grid" data-theme = "b" onclick = "cookbook()" class="ui-btn-active ui-state-persist"> Le Cookbook </a></li>
+				<li><a href = "#shoppingPage" data-icon = "star" data-theme = "b"> Le List </a></li>
+				<li><a href = "#helpPage" data-icon = "info" data-theme = "b"> Help </a></li>
+			</ul>
+		</div>
+		
+	</div>
+	
+	<div data-role = "page" id = "shoppingPage" onkeydown="otherprintKey(event)" >
+		<div data-role = "header" class = "header" style = "background-color: black; color: white">
+			<a href = "#" onclick = "clearShopping()" data-icon = "delete" data-theme = "b">Clear</a>
+			<h1>Le Shoppin' List</h1>
+		</div>
+		
+
+			<div class="ui-grid-a" style = "min-width:90%; max-width:50%; margin-left: auto; margin-right: auto;">
+				<div class="ui-block-a" style="width:80%"><input type= "text" id ="shopInput" value = "" placeholder="Write a food" /></div>
+				<div class="ui-block-b" style="width:20%"><input type="number" id="shopNumber" value="1" class="ui-input-text ui-body-c ui-corner-all ui-shadow-inset"></div>
+			</div>
+			<div style = "min-width:90%; max-width:50%; margin-left: auto; margin-right: auto;"><input type="submit" value="Add Food" onclick ="addToShop()" data-theme = "b"/></div>
+		
+		<div role="main" class="ui-content" style = "min-width:90%; max-width:50%; margin-left: auto; margin-right: auto;">
+
+			
+			<ul id="foodList" data-role="listview" data-inset="true">
+				<ul id = "shopping">
+				</ul>
+				
+			</ul>
+
+			<style>
+			.right-li {
+				text-align: right;
+			}
+			.left-li {
+
+			}
+
+			.ui-grid-a>.ui-block-a{
+			width:75%;
+			}
+
+			.ui-grid-a>.ui-block-b {
+			width:25%;
+
+			}
+
+			</style>
+			
+			<br>
+			<br>
+			
+		</div>
+		
+		<div data-role = "navbar" class = "footer">
+			<ul>
+				<li><a href = "#fridgePage" data-icon = "home" data-theme = "b"> Le Fridge </a></li>
+				<li><a href = "#allRecipePage" data-icon = "grid" data-theme = "b" onclick = "cookbook()"> Le Cookbook </a></li>
+				<li><a href = "#shoppingPage" data-icon = "star" data-theme = "b"class="ui-btn-active ui-state-persist"> Le List </a></li>
+				<li><a href = "#helpPage" data-icon = "info" data-theme = "b"> Help </a></li>
+			</ul>
+		</div>
+		
+	</div>
+
+	<div data-role = "page" id = "helpPage">
+		<div data-role = "header" style = "background-color: black; color: white">
+			<h1>Information</h1>
+		</div>
+		
+		<div role = "main" class = "ui-content" id = "infoPageStuff">
+			<div style = "background-color: #F0F0F0  ;" id = "round" style = "border-image: url(border.png) 30 30 stretch;">
+				<h2 align = "center">Welcome to Le Fridge!</h2>
+				<a href ="#" data-icon = "home" data-role = "button" data-theme = "b"> Le Fridge </a>
+				<p>This is your fridge inventory!</p>
+				<ul>
+					<li>In order to add items to your list, simply write the food in the textbox, specify the quantity, and press "Add Food" or press the enter key.</li>
+					<li>After the item is added, it will show up as a list below the textbox. To edit the quantity, input the new number into the text box, and press the "gear" button to update.</li>
+					<li>To delete the item entirely, press the "X" icon.</li>
+					<li>In order to entirely clear the list, press the "clear" button on the upper left corner.</li>
+					<li>After your inventory is complete, click the "+Recipe" button to see the recipes that you are able to make based on the contents of your fridge. It will only show recipes that you have 70% 
+					of ingredients for.</li>
+					<li>Once you have decided on the recipe you wish to make, click the "Make It!!" button and the ingredients in the recipe will automatically be deleted from your fridge.</li> 
+				</ul>
+				
+				<a href = "#" data-icon = "grid" data-role = "button" data-theme = "b"> Le Cookbook </a>
+				<p>This is the list of all recipes in the database! Feel free to peruse on whim and maybe add to your shopping list! </p>
+				<ul>
+					<li>Click on the recipe of interest to see the details.</li>
+				</ul>
+				
+				<a href = "#" data-icon = "star" data-role = "button" data-theme = "b"> Le List </a>
+				<p>This is your handy-dandy shopping list!</p>
+				<ul>
+					<li>Use the checkboxes to remember what you have bought.</li>
+					<li>Click on the "+" button to automatically add it to the fridge.</li>
+					<li>Click on the "X" button to delete it from the list.</li>
+					<li>Click on the clear button to clear the list.</li>
+				</ul>
+				
+				<br>
+				<br>
+			</div>
+		</div>
+		
+		<div data-role = "navbar" class = "footer">
+			<ul>
+				<li><a href = "#fridgePage" data-icon = "home" data-theme = "b"> Le Fridge </a></li>
+				<li><a href = "#allRecipePage" data-icon = "grid" data-theme = "b" onclick = "cookbook()"> Le Cookbook </a></li>
+				<li><a href = "#shoppingPage" data-icon = "star" data-theme = "b"> Le List </a></li>
+				<li><a href = "#helpPage" data-icon = "info" data-theme = "b" class="ui-btn-active ui-state-persist"> Help </a></li>
+			</ul>
+		</div>
+	</div>
+	
+	
+</body>
+</html>
